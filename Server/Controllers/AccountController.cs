@@ -64,7 +64,7 @@ namespace Server.Controllers
                 AccountType = customer.AccountType,
                 Branch = customer.Taluka,
                 IfscCode = customer.Taluka + customer.PinCode,
-                Created = DateTime.Now.Date,
+                OpeningDate = DateTime.Now.Date,
                 AccountBalance = 0,
                 IsActive = true,
                 IsClosed = false,
@@ -94,7 +94,7 @@ namespace Server.Controllers
             }
 
 
-            var accountExists = _bankDbContext.customer.Any(c => c.AccountNumber == deactivate.AccountNumber);
+            var accountExists = _bankDbContext.Customers.Any(c => c.AccountNumber == deactivate.AccountNumber);
             if (accountExists)
             {
 
