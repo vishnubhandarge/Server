@@ -20,7 +20,7 @@ namespace Server.Models
         [MaxLength(10)]
         [MinLength(10)]
         [Required]
-        [RegularExpression(@"^\d{10}$", ErrorMessage = "Invalid mobile number. It should be 10 digits.")]
+
         public string Mobile { get; set; } //User
 
         [Required]
@@ -70,7 +70,7 @@ namespace Server.Models
         [Required]
         [MinLength(6)]
         [MaxLength(10)]
-        public int PinCode { get; set; }
+        public string PinCode { get; set; }
 
         //Banking detailes
         [Column("Account Number")]

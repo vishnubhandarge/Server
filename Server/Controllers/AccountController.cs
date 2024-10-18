@@ -27,7 +27,7 @@ namespace Server.Controllers
             _bankDbContext = bankDbContext;
         }
 
-        [HttpPost]
+        [HttpPost("OpenAccount")]
         public async Task<IActionResult> OpenAccount(CustomerCreateAccountDTO customer)
         {
             if (!ModelState.IsValid)
