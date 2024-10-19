@@ -38,6 +38,11 @@ namespace Server.Controllers
             {
                 return BadRequest("Model is empty");
             }
+            var accountExists = _bankDbContext.Customers.Any(c => c.Mobile == customer.Mobile && c.Email == customer.Email);
+            if (accountExists)
+            {
+                return BadRequest($"Account already exists. Login or Signup to continue.\nMobile:{customer.Mobile}\tIfscCode: {customer.Email}");
+            }
 
             var newCostomer = new Customer
             {
@@ -48,7 +53,6 @@ namespace Server.Controllers
                 Mobile = customer.Mobile,
                 Email = customer.Email,
                 NormalizedEmail = customer.Email.ToUpper(),
-
                 //Address
                 HouseNo = customer.HouseNo,
                 AddressLine1 = customer.AddressLine1,
@@ -58,7 +62,6 @@ namespace Server.Controllers
                 State = customer.State,
                 Country = customer.Country,
                 PinCode = customer.PinCode,
-
                 //Banking
                 AccountNumber = AccountNumberGenerator.GetNextAccountNumber(),
                 AccountType = customer.AccountType,
@@ -68,7 +71,6 @@ namespace Server.Controllers
                 AccountBalance = 0,
                 IsActive = true,
                 IsClosed = false,
-
                 //Nominee details
                 NomineeName = customer.NomineeName,
                 RelationWithNominee = customer.RelationWithNominee,
@@ -78,7 +80,7 @@ namespace Server.Controllers
             await _bankDbContext.AddAsync(newCostomer);
             await _bankDbContext.SaveChangesAsync();
 
-            return Ok(newCostomer);
+            return Ok($"Account created successfully. Here is your account details\nAccountNumber: {newCostomer.AccountNumber}\tIfscCode: {newCostomer.IfscCode}\nBranch: {newCostomer.Branch}\tAccountType: {newCostomer.AccountType}\nOpeningDate: {newCostomer.OpeningDate}\tAccountBalance: {newCostomer.AccountBalance}\nNominee: {newCostomer.NomineeName}\tRelation: {newCostomer.RelationWithNominee}\nNomineeDOB: {newCostomer.NomineeDOB}");
         }
 
         [HttpPatch]

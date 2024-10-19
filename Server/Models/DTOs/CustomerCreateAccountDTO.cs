@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 
 namespace Server.Models.DTOs
@@ -89,14 +88,14 @@ namespace Server.Models.DTOs
 
         //Nominee details
         [Required]
-
         public string NomineeName { get; set; }
         //[Column("Active_Status")]
-        [Required]
 
-        public string RelationWithNominee { get; set; }
         [Required]
-        [Column(TypeName = "date")]
+        public string RelationWithNominee { get; set; }
+
+        [Required]
+        [DataType(DataType.Date)]
         public DateTime NomineeDOB { get; set; }
 
 

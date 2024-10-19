@@ -9,7 +9,14 @@ namespace Server
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-
+            // Allow CORS
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAngularApp",
+                    policy => policy.WithOrigins("http://localhost:4200")
+                                    .AllowAnyHeader()
+                                    .AllowAnyMethod());
+            });
             // Add services to the container.
 
             builder.Services.AddControllers();
@@ -24,6 +31,9 @@ namespace Server
 
 
             var app = builder.Build();
+
+            // Use CORS policy
+            app.UseCors("AllowAngularApp");
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

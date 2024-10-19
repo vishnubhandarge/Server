@@ -82,7 +82,8 @@ namespace Server.Models
         public string Branch { get; set; }
         [Column("Ifsc Code")]
         public string IfscCode { get; set; }
-        [Column("Opening date", TypeName = "date")]
+        [Column("Opening date")]
+        [DataType(DataType.Date)]
         public DateTime OpeningDate { get; set; }
         [Column("Account Balance")]
         public decimal AccountBalance { get; set; } = 0;
