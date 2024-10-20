@@ -75,6 +75,8 @@ namespace Server.Models
         //Banking detailes
         [Column("Account Number")]
         public long AccountNumber { get; set; }
+        [Column("CRN")]
+        public long CRN { get; set; }
         [Required]
         [Column("Account Type")]
         public string AccountType { get; set; } //SAVING/ SALARY/ CURRENT

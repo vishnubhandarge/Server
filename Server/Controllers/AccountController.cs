@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Server.Data;
 using Server.Models;
 using Server.Models.DTOs;
@@ -10,7 +11,7 @@ namespace Server.Controllers
     public class AccountController : ControllerBase
     {
         private readonly BankDbContext _bankDbContext;
-        public static class AccountNumberGenerator
+        public static class AccountDetailsGenerator
         {
             private static long _currentAccountNumber = 04135120000000;
 
@@ -18,6 +19,15 @@ namespace Server.Controllers
             {
                 return _currentAccountNumber++;
             }
+
+            private static long _crn = 02200000000;
+
+            public static long GetNextCRN()
+            {
+                return _crn++;
+            }
+
+
         }
 
         //public long number = 04135120000001;
@@ -30,78 +40,122 @@ namespace Server.Controllers
         [HttpPost("OpenAccount")]
         public async Task<IActionResult> OpenAccount(CustomerCreateAccountDTO customer)
         {
+
+
+            static Customer CreateNewCustomer(CustomerCreateAccountDTO customer)
+            {
+                return new Customer
+                {
+                    //Personal
+                    FirstName = customer.FirstName,
+                    LastName = customer.LastName,
+                    BirthDate = customer.BirthDate.Date,
+                    Mobile = customer.Mobile,
+                    Email = customer.Email,
+                    NormalizedEmail = customer.Email.ToUpper(),
+                    //Address
+                    HouseNo = customer.HouseNo,
+                    AddressLine1 = customer.AddressLine1,
+                    AddressLine2 = customer.AddressLine2,
+                    Taluka = customer.Taluka,
+                    City = customer.City,
+                    State = customer.State,
+                    Country = customer.Country,
+                    PinCode = customer.PinCode,
+                    //Banking
+                    AccountNumber = AccountDetailsGenerator.GetNextAccountNumber(),
+                    CRN = AccountDetailsGenerator.GetNextCRN(),
+                    AccountType = customer.AccountType,
+                    Branch = customer.Taluka,
+                    IfscCode = customer.Taluka + customer.PinCode,
+                    OpeningDate = DateTime.Now.Date,
+                    AccountBalance = 0,
+                    IsActive = true,
+                    IsClosed = false,
+                    //Nominee details
+                    NomineeName = customer.NomineeName,
+                    RelationWithNominee = customer.RelationWithNominee,
+                    NomineeDOB = customer.NomineeDOB
+                };
+            }
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
+
             if (customer == null)
             {
                 return BadRequest("Model is empty");
             }
+
             var accountExists = _bankDbContext.Customers.Any(c => c.Mobile == customer.Mobile && c.Email == customer.Email);
             if (accountExists)
             {
-                return BadRequest($"Account already exists. Login or Signup to continue.\nMobile:{customer.Mobile}\tIfscCode: {customer.Email}");
+                return BadRequest($"Account already exists. Login or Signup to continue.\nMobile:{customer.Mobile}\tEmail: {customer.Email}");
             }
 
-            var newCostomer = new Customer
-            {
-                //Personal
-                FirstName = customer.FirstName,
-                LastName = customer.LastName,
-                BirthDate = customer.BirthDate.Date,
-                Mobile = customer.Mobile,
-                Email = customer.Email,
-                NormalizedEmail = customer.Email.ToUpper(),
-                //Address
-                HouseNo = customer.HouseNo,
-                AddressLine1 = customer.AddressLine1,
-                AddressLine2 = customer.AddressLine2,
-                Taluka = customer.Taluka,
-                City = customer.City,
-                State = customer.State,
-                Country = customer.Country,
-                PinCode = customer.PinCode,
-                //Banking
-                AccountNumber = AccountNumberGenerator.GetNextAccountNumber(),
-                AccountType = customer.AccountType,
-                Branch = customer.Taluka,
-                IfscCode = customer.Taluka + customer.PinCode,
-                OpeningDate = DateTime.Now.Date,
-                AccountBalance = 0,
-                IsActive = true,
-                IsClosed = false,
-                //Nominee details
-                NomineeName = customer.NomineeName,
-                RelationWithNominee = customer.RelationWithNominee,
-                NomineeDOB = customer.NomineeDOB
-            };
+            // Check if account exists and is closed
+            var accountExistsAndClosed = _bankDbContext.Customers.Any(c => c.Email == customer.Email && c.Mobile == customer.Mobile && c.IsClosed == true);
 
-            await _bankDbContext.AddAsync(newCostomer);
+            // Create the customer object
+            var newCustomer = CreateNewCustomer(customer);
+
+            // Add new customer and save changes
+            await _bankDbContext.AddAsync(newCustomer);
             await _bankDbContext.SaveChangesAsync();
 
-            return Ok($"Account created successfully. Here is your account details\nAccountNumber: {newCostomer.AccountNumber}\tIfscCode: {newCostomer.IfscCode}\nBranch: {newCostomer.Branch}\tAccountType: {newCostomer.AccountType}\nOpeningDate: {newCostomer.OpeningDate}\tAccountBalance: {newCostomer.AccountBalance}\nNominee: {newCostomer.NomineeName}\tRelation: {newCostomer.RelationWithNominee}\nNomineeDOB: {newCostomer.NomineeDOB}");
+            return Ok(CreateAccountSuccessMessage(newCustomer));
+
+            string CreateAccountSuccessMessage(Customer customer)
+            {
+                return $"Account created successfully. Here is your account details\n" +
+                       $"AccountNumber: {customer.AccountNumber}\tIfscCode: {customer.IfscCode}\n" +
+                       $"Branch: {customer.Branch}\tAccountType: {customer.AccountType}\tCRN: {customer.CRN}\n" +
+                       $"OpeningDate: {customer.OpeningDate}\tAccountBalance: {customer.AccountBalance}\n" +
+                       $"Nominee: {customer.NomineeName}\tRelation: {customer.RelationWithNominee}\n" +
+                       $"NomineeDOB: {customer.NomineeDOB}";
+            }
+
         }
 
-        [HttpPatch]
-        public async Task<IActionResult> DeactivateAccount(DeactivateAccountDTO deactivate)
+
+        [HttpGet("GetAccountDetails")]
+        public async Task<IActionResult> GetAccountDetails(GetAccountDetails accountDetails)
         {
+            if (accountDetails == null)
+            {
+                return NotFound("Enter all details.");
+            }
+
             if (!ModelState.IsValid)
             {
-                return BadRequest();
+                return BadRequest("Enter correct account details.");
             }
-            if (deactivate == null)
+
+            // Check if account is closed.
+            var customer = await _bankDbContext.Customers.FirstOrDefaultAsync(c => c.AccountNumber == accountDetails.AccountNumber && c.IsClosed == true);
+            if (customer != null)
             {
-                return BadRequest();
+                return Ok($"Account is closed. Please open a new account.");
             }
 
-
-            var accountExists = _bankDbContext.Customers.Any(c => c.AccountNumber == deactivate.AccountNumber);
-            if (accountExists)
+            // Return details if account is active
+            var isAvailable = await _bankDbContext.Customers.FirstOrDefaultAsync(c => c.AccountNumber == accountDetails.AccountNumber && c.IsClosed == false && c.IsActive == true && (c.CRN == accountDetails.CRN || c.BirthDate == accountDetails.BirthDate));
+            if (isAvailable != null)
             {
-
+                return Ok($"Account details found.\n" +
+                           $"AccountNumber: {isAvailable.AccountNumber}\tIfscCode: {isAvailable.IfscCode}\n" +
+                           $"Branch: {isAvailable.Branch}\tAccountType: {isAvailable.AccountType}\tCRN: {isAvailable.CRN}\n" +
+                           $"OpeningDate: {isAvailable.OpeningDate}\tAccountBalance: {isAvailable.AccountBalance}\n" +
+                           $"Nominee: {isAvailable.NomineeName}\tRelation: {isAvailable.RelationWithNominee}\n" +
+                           $"NomineeDOB: {isAvailable.NomineeDOB}");
             }
-            return Ok(accountExists);
+            else
+            {
+                return NotFound("No account found with the provided details.");
+            }
+
         }
     }
 }
