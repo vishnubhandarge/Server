@@ -20,7 +20,6 @@ namespace Server.Models
         [MaxLength(10)]
         [MinLength(10)]
         [Required]
-
         public string Mobile { get; set; } //User
 
         [Required]
@@ -38,22 +37,18 @@ namespace Server.Models
         [MaxLength(100)]
         public string HouseNo { get; set; } //User
 
-
         [Required]
         [MaxLength(100)]
         [Column("Address Line 1")]
         public string AddressLine1 { get; set; } //User
 
-
         [Column("Address Line 2")]
         [MaxLength(100)]
         public string? AddressLine2 { get; set; } //User
 
-
         [Required]
         [MaxLength(50)]
         public string Taluka { get; set; } //User
-
 
         [Required]
         [MaxLength(50)]
