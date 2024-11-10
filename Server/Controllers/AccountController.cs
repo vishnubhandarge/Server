@@ -64,14 +64,14 @@ namespace Server.Controllers
             internal string GenerateCardType()
             {
                 // Array of card types
-                string[] cardTypes = { "Platinum", "MoneyBack", "Millenia", "Business" };
+                string[] cardTypes = { "Platinum", "MoneyBack", "Millenia", "Coral", "Gold", "Global", "Rubyx", "Sapphire", "Silver", "Titanium", "Emeralde", "Select", "Premium", "Signature", "Infinite", "Reward" };
                 // Select a random card type
                 return cardTypes[new Random().Next(cardTypes.Length)];
             }
 
             internal string CardIssuer()
             {
-                string[] cardIssuers = { "VISA", "MASTERCARD", "RUPAY", "DINERS CLUB", "AMERICAN EXPRESS" };
+                string[] cardIssuers = { "Visa", "MasterCard", "Rupay", "Diners Club", "American Express", "JCB EXPRESS", "Maestro", "Discover", "UnionPay" };
                 return cardIssuers[new Random().Next(cardIssuers.Length)];
             }
 
