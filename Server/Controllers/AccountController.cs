@@ -54,10 +54,11 @@ namespace Server.Controllers
                 return new Random().Next(100, 999); // Generates a random 3-digit CVV
             }
 
-            internal DateTime GenerateExpiryDate()
+            internal string GenerateExpiryDate()
             {
                 // Set expiry date to 8 years from now
-                return DateTime.Now.AddYears(8);
+                DateTime expiry = DateTime.Now.AddYears(8); // Example: 8 years from now return expiry.ToString("MM/yy");
+                return expiry.ToString("MM/yy");
             }
 
             internal string GenerateCardType()
@@ -72,7 +73,7 @@ namespace Server.Controllers
             {
                 string[] cardIssuers = { "VISA", "MASTERCARD", "RUPAY", "DINERS CLUB", "AMERICAN EXPRESS" };
                 return cardIssuers[new Random().Next(cardIssuers.Length)];
-        }
+            }
 
         }
 
@@ -117,36 +118,36 @@ namespace Server.Controllers
 
             // Create the customer object
             var newCustomer = new Customer
-                {
+            {
                 // Personal
-                    FirstName = customer.FirstName,
-                    LastName = customer.LastName,
-                    BirthDate = customer.BirthDate.Date,
-                    Mobile = customer.Mobile,
-                    Email = customer.Email,
-                    NormalizedEmail = customer.Email.ToUpper(),
+                FirstName = customer.FirstName,
+                LastName = customer.LastName,
+                BirthDate = customer.BirthDate.Date,
+                Mobile = customer.Mobile,
+                Email = customer.Email,
+                NormalizedEmail = customer.Email.ToUpper(),
                 // Address
-                    HouseNo = customer.HouseNo,
-                    AddressLine1 = customer.AddressLine1,
-                    AddressLine2 = customer.AddressLine2,
-                    Taluka = customer.Taluka,
-                    City = customer.City,
-                    State = customer.State,
-                    Country = customer.Country,
-                    PinCode = customer.PinCode,
+                HouseNo = customer.HouseNo,
+                AddressLine1 = customer.AddressLine1,
+                AddressLine2 = customer.AddressLine2,
+                Taluka = customer.Taluka,
+                City = customer.City,
+                State = customer.State,
+                Country = customer.Country,
+                PinCode = customer.PinCode,
                 // Banking
                 AccountNumber = accountDetailsGenerator.GetNextAccountNumber(),
                 CRN = accountDetailsGenerator.GetNextCRN(),
-                    AccountType = customer.AccountType,
-                    Branch = customer.Taluka,
-                    IfscCode = customer.Taluka + customer.PinCode,
-                    OpeningDate = DateTime.Now.Date,
-                    AccountBalance = 0,
-                    IsActive = true,
-                    IsClosed = false,
+                AccountType = customer.AccountType,
+                Branch = customer.Taluka,
+                IfscCode = customer.Taluka + customer.PinCode,
+                OpeningDate = DateTime.Now.Date,
+                AccountBalance = 0,
+                IsActive = true,
+                IsClosed = false,
                 // Nominee details
-                    NomineeName = customer.NomineeName,
-                    RelationWithNominee = customer.RelationWithNominee,
+                NomineeName = customer.NomineeName,
+                RelationWithNominee = customer.RelationWithNominee,
                 NomineeDOB = customer.NomineeDOB,
                 Cards = new List<Card>() // Initialize the card list
             };
@@ -162,7 +163,7 @@ namespace Server.Controllers
                 NameOnCard = $"{newCustomer.FirstName} {newCustomer.LastName}",
                 IsActive = true,
                 AccountNumber = newCustomer.AccountNumber
-                };
+            };
 
             newCustomer.Cards.Add(newCard);
 
@@ -251,5 +252,5 @@ namespace Server.Controllers
             }
         }
 
-        }
     }
+}

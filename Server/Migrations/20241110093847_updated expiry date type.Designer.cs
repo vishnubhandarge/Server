@@ -12,8 +12,8 @@ using Server.Data;
 namespace Server.Migrations
 {
     [DbContext(typeof(BankDbContext))]
-    [Migration("20241017034011_changed datatype of pincode")]
-    partial class changeddatatypeofpincode
+    [Migration("20241110093847_updated expiry date type")]
+    partial class updatedexpirydatetype
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,13 +33,15 @@ namespace Server.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CardId"));
 
+                    b.Property<long>("AccountNumber")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("CardIssuer")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("CardNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<long>("CardNumber")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("CardType")
                         .IsRequired()
@@ -51,8 +53,9 @@ namespace Server.Migrations
                     b.Property<int>("Cvv")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("ExpiryDate")
-                        .HasColumnType("datetime2");
+                    b.Property<string>("ExpiryDate")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -108,6 +111,10 @@ namespace Server.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("Branch Name");
+
+                    b.Property<long>("CRN")
+                        .HasColumnType("bigint")
+                        .HasColumnName("CRN");
 
                     b.Property<string>("City")
                         .IsRequired()
@@ -174,7 +181,7 @@ namespace Server.Migrations
                         .HasColumnName("Normalized Email");
 
                     b.Property<DateTime>("OpeningDate")
-                        .HasColumnType("date")
+                        .HasColumnType("datetime2")
                         .HasColumnName("Opening date");
 
                     b.Property<string>("PinCode")

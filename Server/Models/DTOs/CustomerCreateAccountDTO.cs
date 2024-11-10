@@ -85,7 +85,6 @@ namespace Server.Models.DTOs
         [MaxLength(10)]
         public string PinCode { get; set; }
 
-
         //Nominee details
         [Required]
         public string NomineeName { get; set; }
@@ -97,8 +96,6 @@ namespace Server.Models.DTOs
         [Required]
         [DataType(DataType.Date)]
         public DateTime NomineeDOB { get; set; }
-
-
         //Banking
         [Required]
         public string AccountType { get; set; }

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Server.Migrations
 {
     /// <inheritdoc />
-    public partial class firstmigration : Migration
+    public partial class mig1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -30,12 +30,13 @@ namespace Server.Migrations
                     City = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     State = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Country = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    PinCode = table.Column<int>(type: "int", maxLength: 10, nullable: false),
+                    PinCode = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
                     AccountNumber = table.Column<long>(name: "Account Number", type: "bigint", nullable: false),
+                    CRN = table.Column<long>(type: "bigint", nullable: false),
                     AccountType = table.Column<string>(name: "Account Type", type: "nvarchar(max)", nullable: false),
                     BranchName = table.Column<string>(name: "Branch Name", type: "nvarchar(max)", nullable: false),
                     IfscCode = table.Column<string>(name: "Ifsc Code", type: "nvarchar(max)", nullable: false),
-                    Openingdate = table.Column<DateTime>(name: "Opening date", type: "date", nullable: false),
+                    Openingdate = table.Column<DateTime>(name: "Opening date", type: "datetime2", nullable: false),
                     AccountBalance = table.Column<decimal>(name: "Account Balance", type: "decimal(18,2)", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     IsClosed = table.Column<bool>(type: "bit", nullable: false),
@@ -54,13 +55,14 @@ namespace Server.Migrations
                 {
                     CardId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    CardNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CardNumber = table.Column<long>(type: "bigint", nullable: false),
                     CardIssuer = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CardType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ExpiryDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Cvv = table.Column<int>(type: "int", nullable: false),
                     NameOnCard = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    AccountNumber = table.Column<long>(type: "bigint", nullable: false),
                     CustomerId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
