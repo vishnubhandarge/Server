@@ -10,28 +10,74 @@ namespace Server.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
-        private readonly BankDbContext _bankDbContext;
-        public static class AccountDetailsGenerator
+        public class AccountDetailsGenerator
         {
-            private static long _currentAccountNumber = 04135120000000;
-
-            public static long GetNextAccountNumber()
+            private static BankDbContext _context;
+            // Constructor for AccountDetailsGenerator
+            public AccountDetailsGenerator(BankDbContext context)
             {
-                return _currentAccountNumber++;
+                _context = context;
             }
 
-            private static long _crn = 02200000000;
-
-            public static long GetNextCRN()
+            // Get next account number
+            public long GetNextAccountNumber()
             {
-                return _crn++;
+                var latestAccount = _context.Customers
+                                            .OrderByDescending(c => c.AccountNumber)
+                                            .FirstOrDefault();
+                return latestAccount != null ? latestAccount.AccountNumber + 1 : 4135120000000;
             }
 
+            // Get next CRN
+            internal long GetNextCRN()
+            {
+                var latestCustomer = _context.Customers
+                                             .OrderByDescending(c => c.CRN)
+                                             .FirstOrDefault();
+                return latestCustomer != null ? latestCustomer.CRN + 1 : 2200000000;
+            }
+            internal long GenerateCardNumber()
+            {
+                // Implement your logic to generate a unique card number
+                Random random = new Random();
+                long part1 = random.NextInt64(10000000, 99999999);
+                long part2 = random.NextInt64(10000000, 99999999);
+                string cardNumberString = part1.ToString() + part2.ToString();
+                long cardNumber = long.Parse(cardNumberString);
+                return cardNumber;
+
+            }
+
+            internal int GenerateCvv()
+            {
+                // Implement your logic to generate a CVV
+                return new Random().Next(100, 999); // Generates a random 3-digit CVV
+            }
+
+            internal DateTime GenerateExpiryDate()
+            {
+                // Set expiry date to 8 years from now
+                return DateTime.Now.AddYears(8);
+            }
+
+            internal string GenerateCardType()
+            {
+                // Array of card types
+                string[] cardTypes = { "Platinum", "MoneyBack", "Millenia", "Business" };
+                // Select a random card type
+                return cardTypes[new Random().Next(cardTypes.Length)];
+            }
+
+            internal string CardIssuer()
+            {
+                string[] cardIssuers = { "VISA", "MASTERCARD", "RUPAY", "DINERS CLUB", "AMERICAN EXPRESS" };
+                return cardIssuers[new Random().Next(cardIssuers.Length)];
+        }
 
         }
 
-        //public long number = 04135120000001;
-
+        private readonly BankDbContext _bankDbContext;
+        // Constructor for AccountController
         public AccountController(BankDbContext bankDbContext)
         {
             _bankDbContext = bankDbContext;
@@ -40,55 +86,19 @@ namespace Server.Controllers
         [HttpPost("OpenAccount")]
         public async Task<IActionResult> OpenAccount(CustomerCreateAccountDTO customer)
         {
-
-
-            static Customer CreateNewCustomer(CustomerCreateAccountDTO customer)
-            {
-                return new Customer
-                {
-                    //Personal
-                    FirstName = customer.FirstName,
-                    LastName = customer.LastName,
-                    BirthDate = customer.BirthDate.Date,
-                    Mobile = customer.Mobile,
-                    Email = customer.Email,
-                    NormalizedEmail = customer.Email.ToUpper(),
-                    //Address
-                    HouseNo = customer.HouseNo,
-                    AddressLine1 = customer.AddressLine1,
-                    AddressLine2 = customer.AddressLine2,
-                    Taluka = customer.Taluka,
-                    City = customer.City,
-                    State = customer.State,
-                    Country = customer.Country,
-                    PinCode = customer.PinCode,
-                    //Banking
-                    AccountNumber = AccountDetailsGenerator.GetNextAccountNumber(),
-                    CRN = AccountDetailsGenerator.GetNextCRN(),
-                    AccountType = customer.AccountType,
-                    Branch = customer.Taluka,
-                    IfscCode = customer.Taluka + customer.PinCode,
-                    OpeningDate = DateTime.Now.Date,
-                    AccountBalance = 0,
-                    IsActive = true,
-                    IsClosed = false,
-                    //Nominee details
-                    NomineeName = customer.NomineeName,
-                    RelationWithNominee = customer.RelationWithNominee,
-                    NomineeDOB = customer.NomineeDOB
-                };
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
+            // Check if model is empty
             if (customer == null)
             {
                 return BadRequest("Model is empty");
             }
 
+            // Check if model is valid
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Check if account exists
             var accountExists = _bankDbContext.Customers.Any(c => c.Mobile == customer.Mobile && c.Email == customer.Email);
             if (accountExists)
             {
@@ -97,29 +107,106 @@ namespace Server.Controllers
 
             // Check if account exists and is closed
             var accountExistsAndClosed = _bankDbContext.Customers.Any(c => c.Email == customer.Email && c.Mobile == customer.Mobile && c.IsClosed == true);
+            if (accountExistsAndClosed)
+            {
+                return BadRequest($"Account already exists and closed. Activate again to continue.\nMobile:{customer.Mobile}\tEmail: {customer.Email}");
+            }
+
+            // Generate account details
+            var accountDetailsGenerator = new AccountDetailsGenerator(_bankDbContext);
 
             // Create the customer object
-            var newCustomer = CreateNewCustomer(customer);
+            var newCustomer = new Customer
+                {
+                // Personal
+                    FirstName = customer.FirstName,
+                    LastName = customer.LastName,
+                    BirthDate = customer.BirthDate.Date,
+                    Mobile = customer.Mobile,
+                    Email = customer.Email,
+                    NormalizedEmail = customer.Email.ToUpper(),
+                // Address
+                    HouseNo = customer.HouseNo,
+                    AddressLine1 = customer.AddressLine1,
+                    AddressLine2 = customer.AddressLine2,
+                    Taluka = customer.Taluka,
+                    City = customer.City,
+                    State = customer.State,
+                    Country = customer.Country,
+                    PinCode = customer.PinCode,
+                // Banking
+                AccountNumber = accountDetailsGenerator.GetNextAccountNumber(),
+                CRN = accountDetailsGenerator.GetNextCRN(),
+                    AccountType = customer.AccountType,
+                    Branch = customer.Taluka,
+                    IfscCode = customer.Taluka + customer.PinCode,
+                    OpeningDate = DateTime.Now.Date,
+                    AccountBalance = 0,
+                    IsActive = true,
+                    IsClosed = false,
+                // Nominee details
+                    NomineeName = customer.NomineeName,
+                    RelationWithNominee = customer.RelationWithNominee,
+                NomineeDOB = customer.NomineeDOB,
+                Cards = new List<Card>() // Initialize the card list
+            };
+
+            // Create and add a new card to the customer
+            var newCard = new Card
+            {
+                CardNumber = accountDetailsGenerator.GenerateCardNumber(),
+                CardIssuer = accountDetailsGenerator.CardIssuer(),
+                CardType = accountDetailsGenerator.GenerateCardType(),
+                ExpiryDate = accountDetailsGenerator.GenerateExpiryDate(),
+                Cvv = accountDetailsGenerator.GenerateCvv(),
+                NameOnCard = $"{newCustomer.FirstName} {newCustomer.LastName}",
+                IsActive = true,
+                AccountNumber = newCustomer.AccountNumber
+                };
+
+            newCustomer.Cards.Add(newCard);
 
             // Add new customer and save changes
             await _bankDbContext.AddAsync(newCustomer);
             await _bankDbContext.SaveChangesAsync();
 
-            return Ok(CreateAccountSuccessMessage(newCustomer));
-
-            string CreateAccountSuccessMessage(Customer customer)
+            // Return response with newly generated account details
+            var response = new CustomerCreateAccountResponseDTO
             {
-                return $"Account created successfully. Here is your account details\n" +
-                       $"AccountNumber: {customer.AccountNumber}\tIfscCode: {customer.IfscCode}\n" +
-                       $"Branch: {customer.Branch}\tAccountType: {customer.AccountType}\tCRN: {customer.CRN}\n" +
-                       $"OpeningDate: {customer.OpeningDate}\tAccountBalance: {customer.AccountBalance}\n" +
-                       $"Nominee: {customer.NomineeName}\tRelation: {customer.RelationWithNominee}\n" +
-                       $"NomineeDOB: {customer.NomineeDOB}";
-            }
-
+                //Account details
+                AccountNumber = newCustomer.AccountNumber,
+                IfscCode = newCustomer.IfscCode,
+                CRN = newCustomer.CRN,
+                Branch = newCustomer.Branch,
+                AccountType = newCustomer.AccountType,
+                //Card details
+                CardNumber = newCard.CardNumber,
+                CardIssuer = newCard.CardIssuer,
+                CardType = newCard.CardType,
+                Cvv = newCard.Cvv,
+                ExpiryDate = newCard.ExpiryDate,
+                NameOnCard = newCard.NameOnCard,
+                IsActive = true,
+            };
+            return Ok(response);
         }
 
+        private long GetNextAccountNumber()
+        {
+            var latestAccount = _bankDbContext.Customers
+                                              .OrderByDescending(c => c.AccountNumber)
+                                              .FirstOrDefault();
+            return latestAccount != null ? latestAccount.AccountNumber + 1 : 4135120000000;
+        }
 
+        private long GetNextCRN()
+        {
+            var latestCustomer = _bankDbContext.Customers
+                                               .OrderByDescending(c => c.CRN)
+                                               .FirstOrDefault();
+            return latestCustomer != null ? latestCustomer.CRN + 1 : 2200000000;
+        }
+        //Fetch accountdetails
         [HttpGet("GetAccountDetails")]
         public async Task<IActionResult> GetAccountDetails(GetAccountDetails accountDetails)
         {
@@ -127,7 +214,6 @@ namespace Server.Controllers
             {
                 return NotFound("Enter all details.");
             }
-
             if (!ModelState.IsValid)
             {
                 return BadRequest("Enter correct account details.");
@@ -137,25 +223,33 @@ namespace Server.Controllers
             var customer = await _bankDbContext.Customers.FirstOrDefaultAsync(c => c.AccountNumber == accountDetails.AccountNumber && c.IsClosed == true);
             if (customer != null)
             {
-                return Ok($"Account is closed. Please open a new account.");
+                return Ok("Account is closed. Please open a new account.");
             }
 
             // Return details if account is active
             var isAvailable = await _bankDbContext.Customers.FirstOrDefaultAsync(c => c.AccountNumber == accountDetails.AccountNumber && c.IsClosed == false && c.IsActive == true && (c.CRN == accountDetails.CRN || c.BirthDate == accountDetails.BirthDate));
             if (isAvailable != null)
             {
-                return Ok($"Account details found.\n" +
-                           $"AccountNumber: {isAvailable.AccountNumber}\tIfscCode: {isAvailable.IfscCode}\n" +
-                           $"Branch: {isAvailable.Branch}\tAccountType: {isAvailable.AccountType}\tCRN: {isAvailable.CRN}\n" +
-                           $"OpeningDate: {isAvailable.OpeningDate}\tAccountBalance: {isAvailable.AccountBalance}\n" +
-                           $"Nominee: {isAvailable.NomineeName}\tRelation: {isAvailable.RelationWithNominee}\n" +
-                           $"NomineeDOB: {isAvailable.NomineeDOB}");
+                var respone = new GetAccountDetailsResponseDTO
+                {
+                    AccountNumber = isAvailable.AccountNumber,
+                    Branch = isAvailable.Branch,
+                    IfscCode = isAvailable.IfscCode,
+                    CRN = isAvailable.CRN,
+                    AccountType = isAvailable.AccountType,
+                    OpeningDate = isAvailable.OpeningDate,
+                    AccountBalance = isAvailable.AccountBalance,
+                    NomineeName = isAvailable.NomineeName,
+                    NomineeDOB = isAvailable.NomineeDOB,
+                    RelationWithNominee = isAvailable.RelationWithNominee,
+                };
+                return Ok(respone);
             }
             else
             {
                 return NotFound("No account found with the provided details.");
             }
+        }
 
         }
     }
-}
