@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Server.Models;
+using Server.Models.Account;
+using Server.Models.Netbanking;
 
 namespace Server.Data
 {
@@ -7,6 +8,6 @@ namespace Server.Data
     {
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Card> Cards { get; set; }
-    }
-   
+        public DbSet<User> Users { get; set; }
+    }  
 }

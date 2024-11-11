@@ -1,8 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
-using Server.Models;
-using Server.Models.DTOs;
+using Server.Models.Account;
+using Server.Models.Account.DTOs;
+using Server.Models.Netbanking;
+using Server.Models.Netbanking.DTOs;
 
 namespace Server.Controllers
 {
@@ -27,7 +30,6 @@ namespace Server.Controllers
                                             .FirstOrDefault();
                 return latestAccount != null ? latestAccount.AccountNumber + 1 : 4135120000000;
             }
-
             // Get next CRN
             internal long GetNextCRN()
             {
@@ -36,6 +38,8 @@ namespace Server.Controllers
                                              .FirstOrDefault();
                 return latestCustomer != null ? latestCustomer.CRN + 1 : 2200000000;
             }
+
+            // Generate a unique card number
             internal long GenerateCardNumber()
             {
                 // Implement your logic to generate a unique card number
@@ -47,20 +51,20 @@ namespace Server.Controllers
                 return cardNumber;
 
             }
-
+            // Generate a CVV
             internal int GenerateCvv()
             {
                 // Implement your logic to generate a CVV
                 return new Random().Next(100, 999); // Generates a random 3-digit CVV
             }
-
+            // Generate expiry date
             internal string GenerateExpiryDate()
             {
                 // Set expiry date to 8 years from now
                 DateTime expiry = DateTime.Now.AddYears(8); // Example: 8 years from now return expiry.ToString("MM/yy");
                 return expiry.ToString("MM/yy");
             }
-
+            // Generate card type
             internal string GenerateCardType()
             {
                 // Array of card types
@@ -68,13 +72,12 @@ namespace Server.Controllers
                 // Select a random card type
                 return cardTypes[new Random().Next(cardTypes.Length)];
             }
-
+            // Generate card issuer
             internal string CardIssuer()
             {
                 string[] cardIssuers = { "Visa", "MasterCard", "Rupay", "Diners Club", "American Express", "JCB EXPRESS", "Maestro", "Discover", "UnionPay" };
                 return cardIssuers[new Random().Next(cardIssuers.Length)];
             }
-
         }
 
         private readonly BankDbContext _bankDbContext;
@@ -83,7 +86,7 @@ namespace Server.Controllers
         {
             _bankDbContext = bankDbContext;
         }
-
+        // Create new account
         [HttpPost("OpenAccount")]
         public async Task<IActionResult> OpenAccount(CustomerCreateAccountDTO customer)
         {
@@ -130,8 +133,8 @@ namespace Server.Controllers
                 HouseNo = customer.HouseNo,
                 AddressLine1 = customer.AddressLine1,
                 AddressLine2 = customer.AddressLine2,
-                Taluka = customer.Taluka,
                 City = customer.City,
+                District = customer.District,
                 State = customer.State,
                 Country = customer.Country,
                 PinCode = customer.PinCode,
@@ -139,8 +142,8 @@ namespace Server.Controllers
                 AccountNumber = accountDetailsGenerator.GetNextAccountNumber(),
                 CRN = accountDetailsGenerator.GetNextCRN(),
                 AccountType = customer.AccountType,
-                Branch = customer.Taluka,
-                IfscCode = customer.Taluka + customer.PinCode,
+                Branch = customer.City,
+                IfscCode = customer.City + customer.PinCode,
                 OpeningDate = DateTime.Now.Date,
                 AccountBalance = 0,
                 IsActive = true,
@@ -236,6 +239,5 @@ namespace Server.Controllers
                 return NotFound("No account found with the provided details.");
             }
         }
-
     }
 }

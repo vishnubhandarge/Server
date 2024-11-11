@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
 
-namespace Server.Models.DTOs
+namespace Server.Models.Account.DTOs
 {
     public class MinAgeAttribute : ValidationAttribute
     {
@@ -70,10 +70,10 @@ namespace Server.Models.DTOs
         public string? AddressLine2 { get; set; } //User
         [Required]
         [MaxLength(50)]
-        public string Taluka { get; set; } //User
+        public string City { get; set; } //User
         [Required]
         [MaxLength(50)]
-        public string City { get; set; } //User
+        public string District { get; set; } //User
         [Required]
         [MaxLength(50)]
         public string State { get; set; } //User

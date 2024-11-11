@@ -1,21 +1,21 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Server.Models
+namespace Server.Models.Account
 {
     public class Customer
     {
         //Personal details
         public int CustomerId { get; set; }
         [Required]
-        [Column("First Name")]
+        [Column("FirstName")]
         [MaxLength(50)]
         public string FirstName { get; set; } //User
         [Required]
-        [Column("Last Name")]
+        [Column("LastName")]
         [MaxLength(50)]
         public string LastName { get; set; } //User
-        [Column("Date Of Birth", TypeName = "date")]
+        [Column("BirthDate", TypeName = "date")]
         public DateTime BirthDate { get; set; } //User 
         [MaxLength(10)]
         [MinLength(10)]
@@ -25,34 +25,34 @@ namespace Server.Models
         [Required]
         [EmailAddress]
         [MaxLength(100)]
-        [Column("Email Address")]
+        [Column("EmailAddress")]
         public string Email { get; set; } //User
 
-        [Column("Normalized Email")]
+        [Column("NormalizedEmail")]
         public string NormalizedEmail { get; set; } //User
 
         //Address
         [Required]
-        [Column("House/Flat No.")]
+        [Column("House/Flat_No.")]
         [MaxLength(100)]
         public string HouseNo { get; set; } //User
 
         [Required]
         [MaxLength(100)]
-        [Column("Address Line 1")]
+        [Column("AddressLine1")]
         public string AddressLine1 { get; set; } //User
 
-        [Column("Address Line 2")]
+        [Column("AddressLine2")]
         [MaxLength(100)]
         public string? AddressLine2 { get; set; } //User
 
         [Required]
         [MaxLength(50)]
-        public string Taluka { get; set; } //User
+        public string City { get; set; } //User
 
         [Required]
         [MaxLength(50)]
-        public string City { get; set; } //User
+        public string District { get; set; } //User
 
         [Required]
         [MaxLength(50)]
@@ -68,39 +68,40 @@ namespace Server.Models
         public string PinCode { get; set; }
 
         //Banking detailes
-        [Column("Account Number")]
+        [Column("AccountNumber")]
         [ForeignKey("AccountNumber")]
         public long AccountNumber { get; set; }
         [Column("CRN")]
         public long CRN { get; set; }
         [Required]
-        [Column("Account Type")]
+        [Column("AccountType")]
         public string AccountType { get; set; } //SAVING/ SALARY/ CURRENT
-        [Column("Branch Name")]
+        [Column("BranchName")]
         public string Branch { get; set; }
-        [Column("Ifsc Code")]
+        [Column("IfscCode")]
         public string IfscCode { get; set; }
-        [Column("Opening date")]
+        [Column("Openingdate")]
         [DataType(DataType.Date)]
         public DateTime OpeningDate { get; set; }
-        [Column("Account Balance")]
+        [Column("AccountBalance")]
         public decimal AccountBalance { get; set; } = 0;
         public bool IsActive { get; set; } = true;
         public bool IsClosed { get; set; } = false;
 
         //Nominee details
         [Required]
-        [Column("Nominee Name")]
+        [Column("NomineeName")]
         public string NomineeName { get; set; }
         //[Column("Active_Status")]
         [Required]
-        [Column("Relation with nominee")]
+        [Column("RelationWithNominee")]
         public string RelationWithNominee { get; set; }
         [Required]
-        [Column("Nominee birth date", TypeName = "date")]
+        [Column("NomineeBirthDate", TypeName = "date")]
         public DateTime NomineeDOB { get; set; }
 
-        //one to many
+        ////one to many
+        [InverseProperty("Customer")]
         public ICollection<Card> Cards { get; set; } = new List<Card>();
     }
 }

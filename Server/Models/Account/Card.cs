@@ -1,14 +1,8 @@
-﻿namespace Server.Models.DTOs
+﻿namespace Server.Models.Account
 {
-    public class CustomerCreateAccountResponseDTO
+    public class Card
     {
-        public long AccountNumber { get; set; }
-        public string IfscCode { get; set; }
-        public long CRN { get; set; }
-        public string Branch { get; set; }
-        public string AccountType { get; set; }
-
-        //Card details
+        public int CardId { get; set; }
         public long CardNumber { get; set; }
         public string CardIssuer { get; set; } // VISA/ MASTERCARD/ RUPAY...
 
@@ -19,5 +13,9 @@
         public int Cvv { get; set; }
         public string NameOnCard { get; set; }
         public bool IsActive { get; set; } = true;
+
+        //many to one relation
+        public long AccountNumber { get; set; }
+        public Customer customer { get; set; }
     }
 }

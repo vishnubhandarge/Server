@@ -1,4 +1,4 @@
-﻿namespace Server.Models.DTOs
+﻿namespace Server.Models.Account.DTOs
 {
     public class GetAccountDetailsResponseDTO
     {
