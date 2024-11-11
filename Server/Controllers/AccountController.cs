@@ -192,22 +192,7 @@ namespace Server.Controllers
             return Ok(response);
         }
 
-        private long GetNextAccountNumber()
-        {
-            var latestAccount = _bankDbContext.Customers
-                                              .OrderByDescending(c => c.AccountNumber)
-                                              .FirstOrDefault();
-            return latestAccount != null ? latestAccount.AccountNumber + 1 : 4135120000000;
-        }
-
-        private long GetNextCRN()
-        {
-            var latestCustomer = _bankDbContext.Customers
-                                               .OrderByDescending(c => c.CRN)
-                                               .FirstOrDefault();
-            return latestCustomer != null ? latestCustomer.CRN + 1 : 2200000000;
-        }
-        //Fetch accountdetails
+        //Fetch account details
         [HttpGet("GetAccountDetails")]
         public async Task<IActionResult> GetAccountDetails(GetAccountDetails accountDetails)
         {
