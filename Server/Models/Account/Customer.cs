@@ -15,8 +15,13 @@ namespace Server.Models.Account
         [Column("LastName")]
         [MaxLength(50)]
         public string LastName { get; set; } //User
+
+
         [Column("BirthDate", TypeName = "date")]
         public DateTime BirthDate { get; set; } //User 
+
+
+
         [MaxLength(10)]
         [MinLength(10)]
         [Required]

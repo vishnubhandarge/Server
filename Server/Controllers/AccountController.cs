@@ -1,11 +1,10 @@
-﻿
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration.EnvironmentVariables;
 using Server.Data;
+using Server.Models;
 using Server.Models.Account;
 using Server.Models.Account.DTOs;
-using Server.Models.Netbanking;
-using Server.Models.Netbanking.DTOs;
 
 namespace Server.Controllers
 {
@@ -13,6 +12,13 @@ namespace Server.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
+        private readonly BankDbContext _bankDbContext;
+        // Constructor for AccountController
+        public AccountController(BankDbContext bankDbContext)
+        {
+            _bankDbContext = bankDbContext;
+        }
+        // Class and constructor for generating account details
         public class AccountDetailsGenerator
         {
             private static BankDbContext _context;
@@ -80,12 +86,6 @@ namespace Server.Controllers
             }
         }
 
-        private readonly BankDbContext _bankDbContext;
-        // Constructor for AccountController
-        public AccountController(BankDbContext bankDbContext)
-        {
-            _bankDbContext = bankDbContext;
-        }
         // Create new account
         [HttpPost("OpenAccount")]
         public async Task<IActionResult> OpenAccount(CustomerCreateAccountDTO customer)
@@ -195,7 +195,7 @@ namespace Server.Controllers
             return Ok(response);
         }
 
-        //Fetch account details
+        //Get account details
         [HttpGet("GetAccountDetails")]
         public async Task<IActionResult> GetAccountDetails(GetAccountDetails accountDetails)
         {
@@ -237,6 +237,112 @@ namespace Server.Controllers
             else
             {
                 return NotFound("No account found with the provided details.");
+            }
+        }
+
+        // Activate account
+        [HttpPost("ActivateAccount")]
+        public async Task<IActionResult> ActivateAccount(AccountActivateDTO activateAccount)
+        {
+            if(activateAccount is null)
+            {
+                return BadRequest("Fill all the details.");
+            }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Enter correct credentils.");
+            }
+            var customer = _bankDbContext.Customers.FirstOrDefault(c =>
+            c.AccountNumber == activateAccount.AccountNumber &&
+            c.BirthDate == activateAccount.BirthDate &&
+            c.CRN == activateAccount.CRN);
+
+            if (customer is null)
+            {
+                return NotFound("No account found with the provided details.");
+            }
+            else if (customer.IsClosed == true)
+            {
+                return BadRequest("Account is closed.");
+            }
+            else if (customer.IsActive == true)
+            {
+                return BadRequest("Account is already active try to login.");
+            }
+            else if (customer is not null)
+            {
+                customer.IsActive = true;
+                customer.IsClosed = false;
+                await _bankDbContext.SaveChangesAsync();
+                ResponseDTO successResponse = new ResponseDTO
+                {
+                    Status = 200,
+                    Message = "Account activated successfully."
+                };
+                return Ok(successResponse);
+            }
+                
+            ResponseDTO response = new ResponseDTO
+                {
+                    Status = 500,
+                    Message = "Error"
+                };
+            return BadRequest(response);
+        }
+
+        // Close account
+        [HttpPost("CloseAccount")]
+        public async Task<IActionResult> CloseAccount(CloseAccountDTO closeAccount)
+        {
+            if (closeAccount == null)
+            {
+                return BadRequest("Fill all the details.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Enter correct credentils.");
+            }
+
+            var customer = await _bankDbContext.Customers.FirstOrDefaultAsync(c =>
+                c.AccountNumber == closeAccount.AccountNumber &&
+                c.BirthDate == closeAccount.BirthDate &&
+                c.CRN == closeAccount.CRN);
+
+            if (customer is null)
+            {
+                return NotFound("No account found with the provided details.");
+            }
+
+            else if (customer.IsClosed == true)
+            {
+                return BadRequest("Account is already closed.");
+            }
+            else if(customer.IsActive is true)
+            {
+                return BadRequest("Account is not active activate it first.");
+            }
+            else if (customer is not null)
+            {
+                customer.IsActive = false;
+                customer.IsClosed = true;
+                await _bankDbContext.SaveChangesAsync();
+                ResponseDTO response = new ResponseDTO
+                {
+                    Status = 200,
+                    Message = "Account closed."
+                };
+                return Ok(response);
+            }
+            else
+            {
+                ResponseDTO response = new ResponseDTO
+                {
+                    Status = 500,
+                    Message = "Error"
+                };
+
+                return BadRequest(response);
             }
         }
     }
