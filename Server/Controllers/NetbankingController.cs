@@ -12,10 +12,10 @@ namespace Server.Controllers
     [ApiController]
     public class NetbankingController : ControllerBase
     {
-
+        private readonly IConfiguration _configuration;
         private readonly BankDbContext _bankDbContext;
         // Constructor for AccountController
-        public NetbankingController(BankDbContext bankDbContext)
+        public NetbankingController(BankDbContext bankDbContext, IConfiguration configuration)
         {
             _bankDbContext = bankDbContext;
         }
