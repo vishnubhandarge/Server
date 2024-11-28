@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Server.data.Migrations
+namespace Server.Migrations
 {
     /// <inheritdoc />
     public partial class mig1 : Migration
@@ -82,6 +82,7 @@ namespace Server.data.Migrations
                     ExpiryDate = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Cvv = table.Column<int>(type: "int", nullable: false),
                     NameOnCard = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Pin = table.Column<int>(type: "int", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     AccountNumber = table.Column<long>(type: "bigint", nullable: false),
                     CustomerId = table.Column<int>(type: "int", nullable: false)

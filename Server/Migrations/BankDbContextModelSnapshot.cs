@@ -3,20 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Server.Data;
 
 #nullable disable
 
-namespace Server.data.Migrations
+namespace Server.Migrations
 {
     [DbContext(typeof(BankDbContext))]
-    [Migration("20241116052747_mig1")]
-    partial class mig1
+    partial class BankDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -63,6 +60,9 @@ namespace Server.data.Migrations
                     b.Property<string>("NameOnCard")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Pin")
+                        .HasColumnType("int");
 
                     b.HasKey("CardId");
 

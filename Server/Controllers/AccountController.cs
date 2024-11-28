@@ -84,6 +84,12 @@ namespace Server.Controllers
                 string[] cardIssuers = { "Visa", "MasterCard", "Rupay", "Diners Club", "American Express", "JCB EXPRESS", "Maestro", "Discover", "UnionPay" };
                 return cardIssuers[new Random().Next(cardIssuers.Length)];
             }
+            internal string stringGenerateRandomOtp()
+            {
+                Random random = new Random();
+                string otp = random.Next(100000, 999999).ToString("D6");
+                return otp;
+            }
         }
 
         // Create new account
@@ -103,7 +109,7 @@ namespace Server.Controllers
             }
 
             // Check if account exists
-            var accountExists =  _bankDbContext.Customers.Any(c => c.Mobile == customer.Mobile && c.Email == customer.Email);
+            var accountExists = _bankDbContext.Customers.Any(c => c.Mobile == customer.Mobile && c.Email == customer.Email);
             if (accountExists)
             {
                 return BadRequest($"Account already exists. \nMobile:{customer.Mobile}\tEmail: {customer.Email}");
@@ -288,7 +294,7 @@ namespace Server.Controllers
         [HttpPost("ActivateAccount")]
         public async Task<IActionResult> ActivateAccount(AccountActivateDTO activateAccount)
         {
-            if(activateAccount is null)
+            if (activateAccount is null)
             {
                 return BadRequest("Fill all the details.");
             }
@@ -325,12 +331,12 @@ namespace Server.Controllers
                 };
                 return Ok(successResponse);
             }
-                
+
             ResponseDTO response = new ResponseDTO
-                {
-                    Status = 500,
-                    Message = "Error"
-                };
+            {
+                Status = 500,
+                Message = "Error"
+            };
             return BadRequest(response);
         }
 
@@ -363,7 +369,7 @@ namespace Server.Controllers
             {
                 return BadRequest("Account is already closed.");
             }
-            else if(customer.IsActive is true)
+            else if (customer.IsActive is true)
             {
                 return BadRequest("Account is not active activate it first.");
             }
@@ -390,5 +396,13 @@ namespace Server.Controllers
                 return BadRequest(response);
             }
         }
+
+        // Update profile details
+        //[Authorize]
+        //[HttpPut("UpdateAccountDetails/{AccountNumber}")]
+
+        //Login
+        // User clicks on Edit client will send get request and fetch editable data in form format.
+        // Then user clicks on update button will send put request and update the data.
     }
 }

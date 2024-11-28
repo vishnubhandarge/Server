@@ -12,6 +12,7 @@
         public string ExpiryDate { get; set; }
         public int Cvv { get; set; }
         public string NameOnCard { get; set; }
+        public int Pin { get; set; }
         public bool IsActive { get; set; } = true;
         
 

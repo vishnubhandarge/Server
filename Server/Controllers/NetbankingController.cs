@@ -1,16 +1,15 @@
-﻿
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Server.Data;
-using Server.Models.Netbanking.DTOs;
-using Server.Models.Netbanking;
-using Server.Models;
 using Microsoft.IdentityModel.Tokens;
+using Server.Data;
+using Server.Models;
+using Server.Models.Netbanking;
+using Server.Models.Netbanking.DTOs;
+using Server.Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.AspNetCore.Authorization;
-using Server.Services;
 
 namespace Server.Controllers
 {
@@ -50,7 +49,7 @@ namespace Server.Controllers
                         c.CRN == registrationDTO.CRN &&
                         c.AccountNumber == registrationDTO.AccountNumber);
                 // Check if Account is closed.
-                if (customer.IsClosed == true) 
+                if (customer.IsClosed == true)
                 {
                     return BadRequest("Account is closed");
                 }
@@ -196,9 +195,74 @@ namespace Server.Controllers
         // Logout from netbanking
         [Authorize]
         [HttpPost("NetBankingLogout")]
-        public async Task<IActionResult> NetBankingLogout(NetbankingLogoutDTO logoutDTO)
+        public async Task<IActionResult> NetBankingLogout()
         {
-            return Ok("Logout successful.");
+
+            return Ok(new ResponseDTO
+            {
+                Status = 200,
+                Message = "Logout successful."
+            });
+
+        }
+
+        // Forgot password
+        [HttpPost("NetBankingForgotPassword")]
+        public async Task<IActionResult> NetBankingForgotPassword(NetbankingForgotPasswordDTO forgotPasswordDTO)
+        {
+            if (forgotPasswordDTO == null)
+            {
+                return BadRequest("Enter all details.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Enter correct account details.");
+            }
+
+            var validAccountdetail = _bankDbContext.Customers.FirstOrDefault(c => c.AccountNumber == forgotPasswordDTO.AccountNumber && c.BirthDate == forgotPasswordDTO.BirthDate);
+            if (validAccountdetail == null)
+            {
+                return NotFound("Invalid account details.");
+            }
+
+            var cardValidation = _bankDbContext.Cards.FirstOrDefault(c => c.CardNumber == forgotPasswordDTO.CardNumber && c.Cvv == forgotPasswordDTO.Cvv && c.Pin == forgotPasswordDTO.Pin);
+            if (cardValidation == null)
+            {
+                return NotFound("Invalid card details.");
+            }
+
+            try
+            {
+                // Create password hash and salt
+                PasswordHasher.CreatePasswordHash(forgotPasswordDTO.Password, out byte[] passwordHash, out byte[] passwordSalt);
+
+                var fetchUser = _bankDbContext.Users.FirstOrDefault(c => c.CRN == validAccountdetail.CRN);
+                if (fetchUser == null)
+                {
+                    return BadRequest("User not found.");
+                }
+
+                fetchUser.PasswordHash = passwordHash;
+                fetchUser.PasswordSalt = passwordSalt;
+                _bankDbContext.Users.Update(fetchUser);
+                await _bankDbContext.SaveChangesAsync(); // Ensure changes are saved to the database
+
+                return Ok(new ResponseDTO
+                {
+                    Status = 200,
+                    Message = "Password reset successful."
+                });
+
+            }
+            catch (Exception)
+            {
+                return BadRequest(new ResponseDTO
+                {
+                    Status = 500,
+                    Message = "Internal Server Error."
+                });
+            }
         }
     }
 }

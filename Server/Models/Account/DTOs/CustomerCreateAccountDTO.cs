@@ -52,15 +52,14 @@ namespace Server.Models.Account.DTOs
         [MaxLength(10)]
         [MinLength(10)]
         public string Mobile { get; set; }
+		
         [Required]
         [EmailAddress]
         [MaxLength(100)]
-
         public string Email { get; set; }
 
         //Address
         [Required]
-
         public string HouseNo { get; set; } //User
         [Required]
         [MaxLength(100)]
