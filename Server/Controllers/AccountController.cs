@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration.EnvironmentVariables;
 using Server.Data;
 using Server.Models;
 using Server.Models.Account;
@@ -103,17 +103,17 @@ namespace Server.Controllers
             }
 
             // Check if account exists
-            var accountExists = _bankDbContext.Customers.Any(c => c.Mobile == customer.Mobile && c.Email == customer.Email);
+            var accountExists =  _bankDbContext.Customers.Any(c => c.Mobile == customer.Mobile && c.Email == customer.Email);
             if (accountExists)
             {
-                return BadRequest($"Account already exists. Login or Signup to continue.\nMobile:{customer.Mobile}\tEmail: {customer.Email}");
+                return BadRequest($"Account already exists. \nMobile:{customer.Mobile}\tEmail: {customer.Email}");
             }
 
             // Check if account exists and is closed
             var accountExistsAndClosed = _bankDbContext.Customers.Any(c => c.Email == customer.Email && c.Mobile == customer.Mobile && c.IsClosed == true);
             if (accountExistsAndClosed)
             {
-                return BadRequest($"Account already exists and closed. Activate again to continue.\nMobile:{customer.Mobile}\tEmail: {customer.Email}");
+                return BadRequest($"Account already closed. Open new account with different email and number.\nMobile:{customer.Mobile}\tEmail: {customer.Email} use diff email and number");
             }
 
             // Generate account details
@@ -190,13 +190,13 @@ namespace Server.Controllers
                 Cvv = newCard.Cvv,
                 ExpiryDate = newCard.ExpiryDate,
                 NameOnCard = newCard.NameOnCard,
-                IsActive = true,
             };
             return Ok(response);
         }
 
         //Get account details
-        [HttpGet("GetAccountDetails")]
+        [Authorize]
+        [HttpPost("GetAccountDetails")]
         public async Task<IActionResult> GetAccountDetails(GetAccountDetails accountDetails)
         {
             if (accountDetails == null)
@@ -238,6 +238,50 @@ namespace Server.Controllers
             {
                 return NotFound("No account found with the provided details.");
             }
+        }
+
+        // Deactivate account
+        [Authorize]
+        [HttpPost("DeactivateAccount")]
+        public async Task<IActionResult> DeactivateAccount(AccountDeactivateDTO deactivateAccount)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Enter correct credentils.");
+            }
+            else if (deactivateAccount == null)
+            {
+                return BadRequest("Fill all the details.");
+            }
+
+            var customer = _bankDbContext.Customers.FirstOrDefault(c =>
+            c.AccountNumber == deactivateAccount.AccountNumber &&
+            c.BirthDate == deactivateAccount.BirthDate &&
+            c.CRN == deactivateAccount.CRN);
+
+            if (customer is null)
+            {
+                return NotFound("No account found with the provided details.");
+            }
+            else if (customer.IsClosed == true)
+            {
+                return BadRequest("Account is already closed.");
+            }
+            else if (customer.IsActive == false)
+            {
+                return BadRequest("Account is already inactive.");
+            }
+            else if (customer.IsClosed == true)
+            {
+                return BadRequest("Account is closed.");
+            }
+            else if (customer is not null)
+            {
+                customer.IsActive = false;
+                await _bankDbContext.SaveChangesAsync();
+                return Ok("Account deactivated.");
+            }
+            return StatusCode(StatusCodes.Status500InternalServerError);
         }
 
         // Activate account
@@ -291,6 +335,7 @@ namespace Server.Controllers
         }
 
         // Close account
+        [Authorize]
         [HttpPost("CloseAccount")]
         public async Task<IActionResult> CloseAccount(CloseAccountDTO closeAccount)
         {

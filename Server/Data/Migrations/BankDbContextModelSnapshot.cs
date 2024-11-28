@@ -3,24 +3,21 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Server.Data;
 
 #nullable disable
 
-namespace Server.Migrations
+namespace Server.data.Migrations
 {
     [DbContext(typeof(BankDbContext))]
-    [Migration("20241111061228_mig4")]
-    partial class mig4
+    partial class BankDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.10")
+                .HasAnnotation("ProductVersion", "8.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -160,6 +157,12 @@ namespace Server.Migrations
                     b.Property<bool>("IsClosed")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsEmailVerified")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsNumberVerified")
+                        .HasColumnType("bit");
+
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -225,6 +228,12 @@ namespace Server.Migrations
 
                     b.Property<long>("CardNumber")
                         .HasColumnType("bigint");
+
+                    b.Property<bool>("IsNetbankingBlocked")
+                        .HasColumnType("bit");
+
+                    b.Property<byte>("IsRegistered")
+                        .HasColumnType("tinyint");
 
                     b.Property<byte[]>("PasswordHash")
                         .IsRequired()

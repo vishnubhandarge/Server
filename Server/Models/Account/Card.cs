@@ -13,9 +13,11 @@
         public int Cvv { get; set; }
         public string NameOnCard { get; set; }
         public bool IsActive { get; set; } = true;
+        
 
         //many to one relation
         public long AccountNumber { get; set; }
         public Customer customer { get; set; }
+
     }
 }

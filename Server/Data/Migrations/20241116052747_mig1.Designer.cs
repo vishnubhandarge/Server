@@ -9,10 +9,10 @@ using Server.Data;
 
 #nullable disable
 
-namespace Server.Migrations
+namespace Server.data.Migrations
 {
     [DbContext(typeof(BankDbContext))]
-    [Migration("20241111013838_mig1")]
+    [Migration("20241116052747_mig1")]
     partial class mig1
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace Server.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.10")
+                .HasAnnotation("ProductVersion", "8.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -160,6 +160,12 @@ namespace Server.Migrations
                     b.Property<bool>("IsClosed")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsEmailVerified")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsNumberVerified")
+                        .HasColumnType("bit");
+
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -189,16 +195,6 @@ namespace Server.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("Openingdate");
 
-                    b.Property<byte[]>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)")
-                        .HasColumnName("PasswordHash");
-
-                    b.Property<byte[]>("PasswordSalt")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)")
-                        .HasColumnName("PasswordSalt");
-
                     b.Property<string>("PinCode")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -217,6 +213,44 @@ namespace Server.Migrations
                     b.HasKey("CustomerId");
 
                     b.ToTable("Customers");
+                });
+
+            modelBuilder.Entity("Server.Models.Netbanking.User", b =>
+                {
+                    b.Property<int>("UserId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
+
+                    b.Property<long>("AccountNumber")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("CRN")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("CardNumber")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsNetbankingBlocked")
+                        .HasColumnType("bit");
+
+                    b.Property<byte>("IsRegistered")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte[]>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)")
+                        .HasColumnName("PasswordHash");
+
+                    b.Property<byte[]>("PasswordSalt")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)")
+                        .HasColumnName("PasswordSalt");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("Server.Models.Account.Card", b =>

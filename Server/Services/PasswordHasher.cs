@@ -1,4 +1,4 @@
-﻿namespace Server.Models.Netbanking
+﻿namespace Server.Services
 {
     public static class PasswordHasher
     {

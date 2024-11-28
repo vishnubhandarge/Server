@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Server.Models.Netbanking;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Server.Models.Account
@@ -7,20 +8,19 @@ namespace Server.Models.Account
     {
         //Personal details
         public int CustomerId { get; set; }
+
         [Required]
         [Column("FirstName")]
         [MaxLength(50)]
         public string FirstName { get; set; } //User
+
         [Required]
         [Column("LastName")]
         [MaxLength(50)]
         public string LastName { get; set; } //User
 
-
         [Column("BirthDate", TypeName = "date")]
         public DateTime BirthDate { get; set; } //User 
-
-
 
         [MaxLength(10)]
         [MinLength(10)]
@@ -92,6 +92,9 @@ namespace Server.Models.Account
         public decimal AccountBalance { get; set; } = 0;
         public bool IsActive { get; set; } = true;
         public bool IsClosed { get; set; } = false;
+        public bool IsEmailVerified { get; set; } = false;
+        public bool IsNumberVerified { get; set; } = false;
+
 
         //Nominee details
         [Required]

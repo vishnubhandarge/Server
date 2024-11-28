@@ -1,4 +1,5 @@
 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
 
@@ -35,6 +36,26 @@ namespace Server
                 options.UseSqlServer(builder.Configuration.GetConnectionString("BankConnection"));
             });
 
+            // Adds Authentication for web application
+            builder.Services.AddAuthentication(options =>
+            {
+                // Prevents from unauthorized access
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+
+            }).AddJwtBearer(options =>  // Takes below paeameter to authenticate user
+            {
+                options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"], // 1 parameter taken from appsettings.json
+                    ValidAudience = builder.Configuration["Jwt:Audience"], //2 parameter taken from appsettings.json
+                    IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])) // 3 parameter taken from appsettings.json
+                };
+            });
 
             var app = builder.Build();
 
@@ -49,7 +70,7 @@ namespace Server
             }
 
             app.UseHttpsRedirection();
-
+            app.UseAuthentication();
             app.UseAuthorization();
 
 

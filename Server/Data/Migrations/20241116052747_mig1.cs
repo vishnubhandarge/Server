@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Server.Migrations
+namespace Server.data.Migrations
 {
     /// <inheritdoc />
     public partial class mig1 : Migration
@@ -40,15 +40,34 @@ namespace Server.Migrations
                     AccountBalance = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     IsClosed = table.Column<bool>(type: "bit", nullable: false),
+                    IsEmailVerified = table.Column<bool>(type: "bit", nullable: false),
+                    IsNumberVerified = table.Column<bool>(type: "bit", nullable: false),
                     NomineeName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     RelationWithNominee = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    NomineeBirthDate = table.Column<DateTime>(type: "date", nullable: false),
+                    NomineeBirthDate = table.Column<DateTime>(type: "date", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Customers", x => x.CustomerId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    UserId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CRN = table.Column<long>(type: "bigint", nullable: false),
+                    AccountNumber = table.Column<long>(type: "bigint", nullable: false),
+                    CardNumber = table.Column<long>(type: "bigint", nullable: false),
+                    IsRegistered = table.Column<byte>(type: "tinyint", nullable: false),
+                    IsNetbankingBlocked = table.Column<bool>(type: "bit", nullable: false),
                     PasswordSalt = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
                     PasswordHash = table.Column<byte[]>(type: "varbinary(max)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Customers", x => x.CustomerId);
+                    table.PrimaryKey("PK_Users", x => x.UserId);
                 });
 
             migrationBuilder.CreateTable(
@@ -89,6 +108,9 @@ namespace Server.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Cards");
+
+            migrationBuilder.DropTable(
+                name: "Users");
 
             migrationBuilder.DropTable(
                 name: "Customers");

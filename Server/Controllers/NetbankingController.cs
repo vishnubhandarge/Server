@@ -5,6 +5,12 @@ using Server.Data;
 using Server.Models.Netbanking.DTOs;
 using Server.Models.Netbanking;
 using Server.Models;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.AspNetCore.Authorization;
+using Server.Services;
 
 namespace Server.Controllers
 {
@@ -18,6 +24,7 @@ namespace Server.Controllers
         public NetbankingController(BankDbContext bankDbContext, IConfiguration configuration)
         {
             _bankDbContext = bankDbContext;
+            _configuration = configuration;
         }
 
         // Register to netbanking
@@ -78,6 +85,7 @@ namespace Server.Controllers
                     PasswordHash = passwordHash,
                     PasswordSalt = passwordSalt,
                     CardNumber = card.CardNumber,
+                    IsRegistered = 1,
                 };
 
                 // Save the updated customer data
@@ -88,7 +96,7 @@ namespace Server.Controllers
                 var netbankingRegistrationResponseDTO = new NetbankingRegistrationResponseDTO
                 {
                     Status = 200,
-                    Message = "Registration successful. You can log in to netbanking now."
+                    Message = "Registration successful. You can login to netbanking now."
                 };
                 // Return success response
                 return Ok(netbankingRegistrationResponseDTO);
@@ -118,43 +126,75 @@ namespace Server.Controllers
             {
                 return BadRequest("Enter correct account details.");
             }
+            try
+            {
+                var customer = _bankDbContext.Customers.FirstOrDefault(c =>
+                c.CRN == loginDTO.CRN);
+                // Check if account is null.
+                if (customer is null)
+                {
+                    return NotFound("No account found with the provided details.");
+                }
+                // Check if account is closed.
+                else if (customer.IsClosed == true)
+                {
+                    return BadRequest("Account is closed.");
+                }
+                // Check if account is active.
+                else if (customer.IsActive == false)
+                {
+                    return BadRequest("Account is not inactive, activate account to use netbanking again.");
+                }
 
-            var customer = _bankDbContext.Customers.FirstOrDefault(c => 
-            c.CRN == loginDTO.CRN);
-            // Check if account is null.
-            if(customer is null)
-            {
-                return NotFound("No account found with the provided details.");
-            }
-            // Check if account is closed.
-            else if (customer.IsClosed == true) 
-            {
-                return BadRequest("Account is closed.");
-            }
-            // Check if account is active.
-            else if (customer.IsActive == false)
-            {
-                return BadRequest("Account is not active, activate account to use netbanking again.");
-            }
+                var user = await _bankDbContext.Users.FirstOrDefaultAsync(u =>
+                u.CRN == loginDTO.CRN);
 
-            var user = await _bankDbContext.Users.FirstOrDefaultAsync(u =>
-            u.CRN == loginDTO.CRN); 
+                // Check if user is null.
+                if (user == null || !PasswordHasher.VerifyPasswordHash(loginDTO.Password, user.PasswordHash, user.PasswordSalt))
+                {
+                    return BadRequest("Invalid login details.");
+                }
 
-            // Check if user is null.
-            if (user == null || !PasswordHasher.VerifyPasswordHash(loginDTO.Password, user.PasswordHash, user.PasswordSalt))
-            {
-                return BadRequest("Invalid login details.");
+                if (user != null)
+                {
+                    var claims = new[]
+                    {
+                        new Claim(JwtRegisteredClaimNames.Sub, _configuration["Jwt:Subject"]),
+                        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                        new Claim("CRN", user.CRN.ToString()),
+                    };
+                    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+                    var signIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+                    var token = new JwtSecurityToken(
+                    _configuration["Jwt:Issuer"],
+                    _configuration["Jwt:Audience"],
+                    claims,
+                    expires: DateTime.UtcNow.AddHours(10),
+                    signingCredentials: signIn
+                    );
+                    string tokenValue = new JwtSecurityTokenHandler().WriteToken(token);
+
+                    ResponseDTO response = new ResponseDTO
+                    {
+                        Status = 200,
+                        Message = "Login successful."
+                    };
+                    return Ok(new
+                    {
+                        Token = tokenValue,
+                        response
+                    });
+                }
             }
-            // Generate a token or return a success response
-            ResponseDTO response = new ResponseDTO
+            catch (Exception ex)
             {
-                Status = 200,
-                Message = "Login successful."
-            };
-            return Ok(response);
+                return BadRequest(ex.Message);
+            }
+            return BadRequest();
         }
 
         // Logout from netbanking
+        [Authorize]
         [HttpPost("NetBankingLogout")]
         public async Task<IActionResult> NetBankingLogout(NetbankingLogoutDTO logoutDTO)
         {
